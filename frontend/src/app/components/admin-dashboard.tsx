@@ -1,10 +1,11 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { Button } from '@/app/components/ui/button';
 import { Input } from '@/app/components/ui/input';
 import { Label } from '@/app/components/ui/label';
 import { Textarea } from '@/app/components/ui/textarea';
 import { Card, CardContent, CardHeader, CardTitle } from '@/app/components/ui/card';
 import { Badge } from '@/app/components/ui/badge';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/app/components/ui/tabs';
 import {
   Select,
   SelectContent,
@@ -41,6 +42,10 @@ import {
   LogOut,
   UtensilsCrossed,
   Clock,
+  ChefHat,
+  Package,
+  CheckCircle2,
+  ArrowRight,
 } from 'lucide-react';
 
 interface MenuItemData {
@@ -51,6 +56,17 @@ interface MenuItemData {
   image: string;
   prepTime: number;
   description: string;
+}
+
+interface OrderData {
+  _id: string;
+  userId: { _id: string; username: string; displayName?: string } | string;
+  queueNumber: number;
+  items: string[];
+  status: 'pending' | 'preparing' | 'ready' | 'completed';
+  totalPrice: number;
+  estimatedTime: number;
+  createdAt: string;
 }
 
 interface AdminDashboardProps {
@@ -76,6 +92,49 @@ export function AdminDashboard({ onLogout }: AdminDashboardProps) {
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
   const fileRef = useRef<HTMLInputElement>(null);
+  const [activeTab, setActiveTab] = useState('orders');
+
+  // Order management state
+  const [orders, setOrders] = useState<OrderData[]>([]);
+  const [ordersLoading, setOrdersLoading] = useState(true);
+
+  const fetchOrders = useCallback(async () => {
+    try {
+      const res = await fetch('http://localhost:5000/api/admin/orders', { credentials: 'include' });
+      if (res.ok) {
+        const data = (await res.json()) as OrderData[];
+        setOrders(data);
+      }
+    } catch {
+      // silently fail
+    } finally {
+      setOrdersLoading(false);
+    }
+  }, []);
+
+  // Poll orders every 5 seconds when on orders tab
+  useEffect(() => {
+    fetchOrders();
+    const interval = setInterval(fetchOrders, 5000);
+    return () => clearInterval(interval);
+  }, [fetchOrders]);
+
+  const updateOrderStatus = async (orderId: string, newStatus: string) => {
+    try {
+      const res = await fetch(`http://localhost:5000/api/admin/orders/${orderId}/status`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({ status: newStatus }),
+      });
+      if (res.ok) {
+        const updated = (await res.json()) as OrderData;
+        setOrders(prev => prev.map(o => o._id === updated._id ? updated : o));
+      }
+    } catch {
+      // silently fail
+    }
+  };
 
   const fetchItems = async () => {
     try {
@@ -217,6 +276,44 @@ export function AdminDashboard({ onLogout }: AdminDashboardProps) {
     }
   };
 
+  const getStatusBadge = (status: string) => {
+    switch (status) {
+      case 'pending': return <Badge variant="outline" className="bg-yellow-500/10 text-yellow-600 border-yellow-500/30"><Clock className="w-3 h-3 mr-1" />Pending</Badge>;
+      case 'preparing': return <Badge variant="outline" className="bg-blue-500/10 text-blue-600 border-blue-500/30"><ChefHat className="w-3 h-3 mr-1" />Preparing</Badge>;
+      case 'ready': return <Badge variant="outline" className="bg-green-500/10 text-green-600 border-green-500/30"><Package className="w-3 h-3 mr-1" />Ready</Badge>;
+      case 'completed': return <Badge variant="outline" className="bg-primary/10 text-primary border-primary/30"><CheckCircle2 className="w-3 h-3 mr-1" />Completed</Badge>;
+      default: return <Badge variant="outline">{status}</Badge>;
+    }
+  };
+
+  const getNextStatus = (status: string): string | null => {
+    switch (status) {
+      case 'pending': return 'preparing';
+      case 'preparing': return 'ready';
+      case 'ready': return 'completed';
+      default: return null;
+    }
+  };
+
+  const getNextStatusLabel = (status: string): string => {
+    switch (status) {
+      case 'pending': return 'Start Preparing';
+      case 'preparing': return 'Mark Ready';
+      case 'ready': return 'Mark Completed';
+      default: return '';
+    }
+  };
+
+  const getUserName = (order: OrderData): string => {
+    if (typeof order.userId === 'object' && order.userId) {
+      return order.userId.displayName || order.userId.username;
+    }
+    return 'Unknown';
+  };
+
+  const activeOrders = orders.filter(o => o.status !== 'completed');
+  const completedOrders = orders.filter(o => o.status === 'completed');
+
   return (
     <div className="min-h-screen bg-background">
       {/* Header */}
@@ -228,7 +325,7 @@ export function AdminDashboard({ onLogout }: AdminDashboardProps) {
             </div>
             <div>
               <h1 className="text-xl font-semibold">Admin Dashboard</h1>
-              <p className="text-sm text-muted-foreground">Manage canteen menu</p>
+              <p className="text-sm text-muted-foreground">Manage orders & menu</p>
             </div>
           </div>
           <Button variant="outline" onClick={handleLogout}>
@@ -239,36 +336,169 @@ export function AdminDashboard({ onLogout }: AdminDashboardProps) {
       </header>
 
       <main className="container mx-auto px-4 py-8">
-        {/* Stats */}
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-8">
-          <Card>
-            <CardContent className="pt-6 text-center">
-              <div className="text-3xl font-bold text-primary">{items.length}</div>
-              <p className="text-sm text-muted-foreground">Total Items</p>
-            </CardContent>
-          </Card>
-          <Card>
-            <CardContent className="pt-6 text-center">
-              <div className="text-3xl font-bold text-primary">
-                {items.filter(i => i.category === 'main').length}
-              </div>
-              <p className="text-sm text-muted-foreground">Main Dishes</p>
-            </CardContent>
-          </Card>
-          <Card>
-            <CardContent className="pt-6 text-center">
-              <div className="text-3xl font-bold text-primary">
-                {items.filter(i => i.category === 'beverage').length + items.filter(i => i.category === 'snack').length}
-              </div>
-              <p className="text-sm text-muted-foreground">Beverages & Snacks</p>
-            </CardContent>
-          </Card>
-        </div>
+        <Tabs value={activeTab} onValueChange={setActiveTab}>
+          <TabsList className="mb-6">
+            <TabsTrigger value="orders">
+              Orders
+              {activeOrders.length > 0 && (
+                <Badge className="ml-2 h-5 px-1.5 bg-destructive text-destructive-foreground">{activeOrders.length}</Badge>
+              )}
+            </TabsTrigger>
+            <TabsTrigger value="menu">Menu Items</TabsTrigger>
+          </TabsList>
 
-        {/* Actions bar */}
-        <div className="flex items-center justify-between mb-6">
-          <h2 className="text-2xl font-semibold">Menu Items</h2>
-          <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
+          {/* ─── ORDERS TAB ─── */}
+          <TabsContent value="orders">
+            {/* Stats */}
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-8">
+              <Card>
+                <CardContent className="pt-6 text-center">
+                  <div className="text-3xl font-bold text-yellow-600">{orders.filter(o => o.status === 'pending').length}</div>
+                  <p className="text-sm text-muted-foreground">Pending</p>
+                </CardContent>
+              </Card>
+              <Card>
+                <CardContent className="pt-6 text-center">
+                  <div className="text-3xl font-bold text-blue-600">{orders.filter(o => o.status === 'preparing').length}</div>
+                  <p className="text-sm text-muted-foreground">Preparing</p>
+                </CardContent>
+              </Card>
+              <Card>
+                <CardContent className="pt-6 text-center">
+                  <div className="text-3xl font-bold text-green-600">{orders.filter(o => o.status === 'ready').length}</div>
+                  <p className="text-sm text-muted-foreground">Ready</p>
+                </CardContent>
+              </Card>
+              <Card>
+                <CardContent className="pt-6 text-center">
+                  <div className="text-3xl font-bold text-primary">{completedOrders.length}</div>
+                  <p className="text-sm text-muted-foreground">Completed</p>
+                </CardContent>
+              </Card>
+            </div>
+
+            {/* Active orders */}
+            <h2 className="text-xl font-semibold mb-4">Active Queue</h2>
+            {ordersLoading ? (
+              <div className="flex justify-center py-12">
+                <Loader2 className="w-8 h-8 animate-spin text-muted-foreground" />
+              </div>
+            ) : activeOrders.length === 0 ? (
+              <div className="text-center py-12">
+                <CheckCircle2 className="w-12 h-12 mx-auto text-muted-foreground mb-4" />
+                <p className="text-muted-foreground">No active orders. All caught up!</p>
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-8">
+                {activeOrders.map((order) => {
+                  const nextStatus = getNextStatus(order.status);
+                  return (
+                    <Card key={order._id} className="relative">
+                      <CardHeader className="pb-3">
+                        <div className="flex items-center justify-between">
+                          <CardTitle className="text-lg">
+                            #{order.queueNumber.toString().padStart(3, '0')}
+                          </CardTitle>
+                          {getStatusBadge(order.status)}
+                        </div>
+                        <p className="text-sm text-muted-foreground">{getUserName(order)}</p>
+                      </CardHeader>
+                      <CardContent className="space-y-3">
+                        <ul className="space-y-1">
+                          {order.items.map((item, i) => (
+                            <li key={i} className="text-sm flex items-center gap-2">
+                              <div className="w-1 h-1 rounded-full bg-primary" />
+                              {item}
+                            </li>
+                          ))}
+                        </ul>
+                        <div className="flex items-center justify-between text-sm text-muted-foreground">
+                          <span>${order.totalPrice.toFixed(2)}</span>
+                          <span className="flex items-center gap-1"><Clock className="w-3 h-3" />{order.estimatedTime}m</span>
+                        </div>
+                        {nextStatus && (
+                          <Button
+                            className="w-full"
+                            size="sm"
+                            onClick={() => updateOrderStatus(order._id, nextStatus)}
+                          >
+                            {getNextStatusLabel(order.status)}
+                            <ArrowRight className="w-4 h-4 ml-1" />
+                          </Button>
+                        )}
+                      </CardContent>
+                    </Card>
+                  );
+                })}
+              </div>
+            )}
+
+            {/* Completed orders */}
+            {completedOrders.length > 0 && (
+              <>
+                <h2 className="text-xl font-semibold mb-4 mt-8">Completed Today</h2>
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                  {completedOrders.slice(0, 12).map((order) => (
+                    <Card key={order._id} className="opacity-70">
+                      <CardHeader className="pb-3">
+                        <div className="flex items-center justify-between">
+                          <CardTitle className="text-lg">
+                            #{order.queueNumber.toString().padStart(3, '0')}
+                          </CardTitle>
+                          {getStatusBadge(order.status)}
+                        </div>
+                        <p className="text-sm text-muted-foreground">{getUserName(order)}</p>
+                      </CardHeader>
+                      <CardContent>
+                        <ul className="space-y-1">
+                          {order.items.map((item, i) => (
+                            <li key={i} className="text-sm flex items-center gap-2">
+                              <div className="w-1 h-1 rounded-full bg-muted-foreground" />
+                              {item}
+                            </li>
+                          ))}
+                        </ul>
+                        <p className="text-sm text-muted-foreground mt-2">${order.totalPrice.toFixed(2)}</p>
+                      </CardContent>
+                    </Card>
+                  ))}
+                </div>
+              </>
+            )}
+          </TabsContent>
+
+          {/* ─── MENU TAB ─── */}
+          <TabsContent value="menu">
+            {/* Stats */}
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-8">
+              <Card>
+                <CardContent className="pt-6 text-center">
+                  <div className="text-3xl font-bold text-primary">{items.length}</div>
+                  <p className="text-sm text-muted-foreground">Total Items</p>
+                </CardContent>
+              </Card>
+              <Card>
+                <CardContent className="pt-6 text-center">
+                  <div className="text-3xl font-bold text-primary">
+                    {items.filter(i => i.category === 'main').length}
+                  </div>
+                  <p className="text-sm text-muted-foreground">Main Dishes</p>
+                </CardContent>
+              </Card>
+              <Card>
+                <CardContent className="pt-6 text-center">
+                  <div className="text-3xl font-bold text-primary">
+                    {items.filter(i => i.category === 'beverage').length + items.filter(i => i.category === 'snack').length}
+                  </div>
+                  <p className="text-sm text-muted-foreground">Beverages & Snacks</p>
+                </CardContent>
+              </Card>
+            </div>
+
+            {/* Actions bar */}
+            <div className="flex items-center justify-between mb-6">
+              <h2 className="text-2xl font-semibold">Menu Items</h2>
+              <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
             <DialogTrigger asChild>
               <Button onClick={openCreate}>
                 <Plus className="w-4 h-4 mr-2" />
@@ -480,6 +710,8 @@ export function AdminDashboard({ onLogout }: AdminDashboardProps) {
             ))}
           </div>
         )}
+          </TabsContent>
+        </Tabs>
       </main>
     </div>
   );

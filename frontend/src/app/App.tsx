@@ -87,12 +87,37 @@ export default function App() {
     }
   }, []);
 
+  // Fetch active order for user (restore on login/reload)
+  const fetchActiveOrder = useCallback(async () => {
+    try {
+      const res = await fetch('http://localhost:5000/api/orders', { credentials: 'include' });
+      if (res.ok) {
+        const orders = (await res.json()) as Array<{ _id: string; queueNumber: number; items: string[]; status: Order['status']; totalPrice: number; estimatedTime: number; createdAt: string }>;
+        const active = orders.find(o => o.status !== 'completed');
+        if (active) {
+          setCurrentOrder({
+            id: active._id,
+            queueNumber: active.queueNumber,
+            items: active.items,
+            status: active.status,
+            totalPrice: active.totalPrice,
+            estimatedTime: active.estimatedTime,
+            timestamp: new Date(active.createdAt),
+          });
+        }
+      }
+    } catch {
+      // silently fail
+    }
+  }, []);
+
   useEffect(() => {
     if (isAuthenticated && !isAdmin) {
       fetchMenu();
       fetchQueueInfo();
+      fetchActiveOrder();
     }
-  }, [isAuthenticated, isAdmin, fetchMenu, fetchQueueInfo]);
+  }, [isAuthenticated, isAdmin, fetchMenu, fetchQueueInfo, fetchActiveOrder]);
 
   // Poll order status from backend
   useEffect(() => {
@@ -314,20 +339,28 @@ export default function App() {
       />
 
       <main className="container mx-auto px-4 py-8">
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-          {filteredItems.map(item => (
-            <MenuCard
-              key={item.id}
-              item={item}
-              onAddToCart={handleAddToCart}
-            />
-          ))}
-        </div>
-
-        {filteredItems.length === 0 && (
-          <div className="text-center py-12">
-            <p className="text-muted-foreground">No items found in this category</p>
+        {menuLoading ? (
+          <div className="flex justify-center py-12">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary" />
           </div>
+        ) : (
+          <>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+              {filteredItems.map(item => (
+                <MenuCard
+                  key={item.id}
+                  item={item}
+                  onAddToCart={handleAddToCart}
+                />
+              ))}
+            </div>
+
+            {filteredItems.length === 0 && (
+              <div className="text-center py-12">
+                <p className="text-muted-foreground">No items found in this category</p>
+              </div>
+            )}
+          </>
         )}
       </main>
 

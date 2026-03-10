@@ -2,6 +2,7 @@ import { Router, Response } from 'express';
 import multer from 'multer';
 import { User } from '../models/User.js';
 import { MenuItem } from '../models/MenuItem.js';
+import { Order } from '../models/Order.js';
 import { AuthRequest, authenticateAdmin, generateToken } from '../middleware/auth.js';
 import { uploadToS3, deleteFromS3 } from '../config/s3.js';
 
@@ -196,6 +197,48 @@ router.delete('/menu/:id', authenticateAdmin, async (req: AuthRequest, res: Resp
     res.json({ message: 'Menu item deleted' });
   } catch (err) {
     console.error('Admin menu delete error:', err);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+// GET /api/admin/orders — list all orders (active first, then recent)
+router.get('/orders', authenticateAdmin, async (_req: AuthRequest, res: Response) => {
+  try {
+    const orders = await Order.find()
+      .sort({ createdAt: -1 })
+      .populate('userId', 'username displayName');
+    res.json(orders);
+  } catch (err) {
+    console.error('Admin orders list error:', err);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+// PATCH /api/admin/orders/:id/status — update order status
+router.patch('/orders/:id/status', authenticateAdmin, async (req: AuthRequest, res: Response) => {
+  try {
+    const { status } = req.body as { status?: string };
+    const validStatuses = ['pending', 'preparing', 'ready', 'completed'];
+
+    if (!status || !validStatuses.includes(status)) {
+      res.status(400).json({ error: 'Invalid status' });
+      return;
+    }
+
+    const order = await Order.findByIdAndUpdate(
+      req.params.id,
+      { status },
+      { new: true },
+    ).populate('userId', 'username displayName');
+
+    if (!order) {
+      res.status(404).json({ error: 'Order not found' });
+      return;
+    }
+
+    res.json(order);
+  } catch (err) {
+    console.error('Admin order status update error:', err);
     res.status(500).json({ error: 'Internal server error' });
   }
 });
