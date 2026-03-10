@@ -1,5 +1,13 @@
-import { UtensilsCrossed } from 'lucide-react';
+import { UtensilsCrossed, User, LogOut, UserCog } from 'lucide-react';
 import { Tabs, TabsList, TabsTrigger } from '@/app/components/ui/tabs';
+import { Avatar, AvatarFallback, AvatarImage } from '@/app/components/ui/avatar';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from '@/app/components/ui/dropdown-menu';
 
 interface HeaderProps {
   selectedCategory: string;
@@ -8,9 +16,16 @@ interface HeaderProps {
     currentQueue: number;
     averageWaitTime: number;
   };
+  userProfile?: {
+    displayName: string;
+    profilePicture: string;
+    username: string;
+  };
+  onProfileClick?: () => void;
+  onLogout?: () => void;
 }
 
-export function Header({ selectedCategory, onCategoryChange, queueInfo }: HeaderProps) {
+export function Header({ selectedCategory, onCategoryChange, queueInfo, userProfile, onProfileClick, onLogout }: HeaderProps) {
   return (
     <header className="sticky top-0 z-40 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
       <div className="container mx-auto px-4 py-4">
@@ -34,6 +49,38 @@ export function Header({ selectedCategory, onCategoryChange, queueInfo }: Header
                 <div className="text-2xl text-primary">{queueInfo.averageWaitTime}m</div>
                 <div className="text-muted-foreground">avg wait</div>
               </div>
+              {userProfile && (
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <button
+                      type="button"
+                      className="ml-2 focus:outline-none focus:ring-2 focus:ring-primary rounded-full transition-transform hover:scale-105"
+                    >
+                      <Avatar className="w-10 h-10 border-2 border-primary/30">
+                        <AvatarImage src={userProfile.profilePicture} alt={userProfile.displayName || userProfile.username} />
+                        <AvatarFallback className="bg-primary/10 text-primary text-sm">
+                          {(userProfile.displayName || userProfile.username || '?').slice(0, 2).toUpperCase()}
+                        </AvatarFallback>
+                      </Avatar>
+                    </button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end" className="w-48">
+                    <div className="px-2 py-1.5 text-sm font-medium">
+                      {userProfile.displayName || userProfile.username}
+                    </div>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuItem onClick={onProfileClick}>
+                      <UserCog className="w-4 h-4 mr-2" />
+                      Edit Profile
+                    </DropdownMenuItem>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuItem onClick={onLogout} className="text-destructive focus:text-destructive">
+                      <LogOut className="w-4 h-4 mr-2" />
+                      Logout
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              )}
             </div>
           </div>
           
@@ -55,6 +102,38 @@ export function Header({ selectedCategory, onCategoryChange, queueInfo }: Header
               <div className="text-lg text-primary">{queueInfo.averageWaitTime}m</div>
               <div className="text-xs text-muted-foreground">avg wait</div>
             </div>
+            {userProfile && (
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <button
+                    type="button"
+                    className="focus:outline-none focus:ring-2 focus:ring-primary rounded-full transition-transform hover:scale-105"
+                  >
+                    <Avatar className="w-9 h-9 border-2 border-primary/30">
+                      <AvatarImage src={userProfile.profilePicture} alt={userProfile.displayName || userProfile.username} />
+                      <AvatarFallback className="bg-primary/10 text-primary text-xs">
+                        {(userProfile.displayName || userProfile.username || '?').slice(0, 2).toUpperCase()}
+                      </AvatarFallback>
+                    </Avatar>
+                  </button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end" className="w-48">
+                  <div className="px-2 py-1.5 text-sm font-medium">
+                    {userProfile.displayName || userProfile.username}
+                  </div>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem onClick={onProfileClick}>
+                    <UserCog className="w-4 h-4 mr-2" />
+                    Edit Profile
+                  </DropdownMenuItem>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem onClick={onLogout} className="text-destructive focus:text-destructive">
+                    <LogOut className="w-4 h-4 mr-2" />
+                    Logout
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            )}
           </div>
         </div>
       </div>
