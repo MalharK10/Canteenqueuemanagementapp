@@ -43,7 +43,7 @@ export function Cart({ items, onRemoveItem, onPlaceOrder, onOrderConfirmed, onCl
 
     setIsPlacingOrder(true);
     try {
-      const response = await fetch('http://http://65.2.183.102:5000/api/orders', {
+      const response = await fetch('http://65.2.183.102:5000/api/orders', {
         method: 'POST',
         credentials: 'include',
         headers: { 'Content-Type': 'application/json' },

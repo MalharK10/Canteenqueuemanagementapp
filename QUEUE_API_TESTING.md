@@ -3,7 +3,7 @@
 ## Quick Start: Testing the Order & Queue System
 
 ### Prerequisites
-- Backend running on `http://http://65.2.183.102:5000`
+- Backend running on `http://65.2.183.102:5000`
 - Frontend running on `http://localhost:5173` (or appropriate port)
 - User must be authenticated
 
@@ -18,7 +18,7 @@ Creates a new order and assigns a queue number.
 
 **Request:**
 ```bash
-curl -X POST http://http://65.2.183.102:5000/api/orders \
+curl -X POST http://65.2.183.102:5000/api/orders \
   -H "Content-Type: application/json" \
   -H "Cookie: <your_auth_cookie>" \
   -d '{
@@ -57,7 +57,7 @@ Lists all orders placed by the authenticated user, sorted by most recent first.
 
 **Request:**
 ```bash
-curl http://http://65.2.183.102:5000/api/orders \
+curl http://65.2.183.102:5000/api/orders \
   -H "Cookie: <your_auth_cookie>"
 ```
 
@@ -84,7 +84,7 @@ Returns overall queue information (total active orders and average wait time).
 
 **Request:**
 ```bash
-curl http://http://65.2.183.102:5000/api/orders/queue/info \
+curl http://65.2.183.102:5000/api/orders/queue/info \
   -H "Cookie: <your_auth_cookie>"
 ```
 
@@ -105,7 +105,7 @@ Lists all orders currently in queue (pending, preparing, ready) sorted by queue 
 
 **Request:**
 ```bash
-curl http://http://65.2.183.102:5000/api/orders/queue/all \
+curl http://65.2.183.102:5000/api/orders/queue/all \
   -H "Cookie: <your_auth_cookie>"
 ```
 
@@ -151,7 +151,7 @@ Returns the authenticated user's position in the queue (only if user has an acti
 
 **Request:**
 ```bash
-curl http://http://65.2.183.102:5000/api/orders/queue/position \
+curl http://65.2.183.102:5000/api/orders/queue/position \
   -H "Cookie: <your_auth_cookie>"
 ```
 
@@ -186,7 +186,7 @@ Retrieves details of a specific order (user can only access their own orders).
 
 **Request:**
 ```bash
-curl http://http://65.2.183.102:5000/api/orders/507f1f77bcf86cd799439011 \
+curl http://65.2.183.102:5000/api/orders/507f1f77bcf86cd799439011 \
   -H "Cookie: <your_auth_cookie>"
 ```
 
@@ -218,7 +218,7 @@ Updates the status of an order (typically used by admin/kitchen staff).
 
 **Request:**
 ```bash
-curl -X PATCH http://http://65.2.183.102:5000/api/orders/507f1f77bcf86cd799439011/status \
+curl -X PATCH http://65.2.183.102:5000/api/orders/507f1f77bcf86cd799439011/status \
   -H "Content-Type: application/json" \
   -H "Cookie: <your_auth_cookie>" \
   -d '{
@@ -391,7 +391,7 @@ interface QueueDisplayProps {
 
 Make sure these are configured:
 ```
-BACKEND_URL=http://http://65.2.183.102:5000
+BACKEND_URL=http://65.2.183.102:5000
 FRONTEND_URL=http://localhost:5173
 ```
 
