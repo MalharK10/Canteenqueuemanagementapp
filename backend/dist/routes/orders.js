@@ -1,7 +1,7 @@
 import { Router } from 'express';
-import { Order } from '../models/Order';
-import { getNextQueueNumber } from '../models/Counter';
-import { authenticate } from '../middleware/auth';
+import { Order } from '../models/Order.js';
+import { getNextQueueNumber } from '../models/Counter.js';
+import { authenticate } from '../middleware/auth.js';
 const router = Router();
 // All order routes require authentication
 router.use(authenticate);

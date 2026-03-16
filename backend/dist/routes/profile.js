@@ -1,8 +1,8 @@
 import { Router } from 'express';
 import multer from 'multer';
-import { User } from '../models/User';
-import { authenticate } from '../middleware/auth';
-import { uploadToS3, deleteFromS3 } from '../config/s3';
+import { User } from '../models/User.js';
+import { authenticate } from '../middleware/auth.js';
+import { uploadToS3, deleteFromS3 } from '../config/s3.js';
 const router = Router();
 // Multer stores files in memory so we can stream them to S3
 const upload = multer({

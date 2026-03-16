@@ -1,6 +1,6 @@
 import { Router } from 'express';
-import { User } from '../models/User';
-import { authenticate, generateToken } from '../middleware/auth';
+import { User } from '../models/User.js';
+import { authenticate, generateToken } from '../middleware/auth.js';
 const router = Router();
 // POST /api/auth/register
 router.post('/register', async (req, res) => {

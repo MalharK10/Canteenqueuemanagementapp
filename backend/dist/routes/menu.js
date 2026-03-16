@@ -1,5 +1,5 @@
 import { Router } from 'express';
-import { MenuItem } from '../models/MenuItem';
+import { MenuItem } from '../models/MenuItem.js';
 const router = Router();
 // GET /api/menu
 router.get('/', async (_req, res) => {

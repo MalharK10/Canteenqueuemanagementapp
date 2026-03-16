@@ -1,5 +1,5 @@
 import jwt from 'jsonwebtoken';
-import { User } from '../models/User';
+import { User } from '../models/User.js';
 const JWT_SECRET = process.env.JWT_SECRET || 'change-this-to-a-strong-random-secret';
 export function generateToken(userId) {
     return jwt.sign({ id: userId }, JWT_SECRET, { expiresIn: '7d' });

@@ -1,9 +1,9 @@
 import { Router, Response } from 'express';
 import multer from 'multer';
-import { User } from '../models/User';
-import { MenuItem } from '../models/MenuItem';
+import { User } from '../models/User.js';
+import { MenuItem } from '../models/MenuItem.js';
 import { Order } from '../models/Order.js';
-import { AuthRequest, authenticateAdmin, generateToken } from '../middleware/auth';
+import { AuthRequest, authenticateAdmin, generateToken } from '../middleware/auth.js';
 import { uploadToS3, deleteFromS3 } from '../config/s3';
 
 const router = Router();
