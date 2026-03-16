@@ -100,7 +100,7 @@ export function AdminDashboard({ onLogout }: AdminDashboardProps) {
 
   const fetchOrders = useCallback(async () => {
     try {
-      const res = await fetch('http://localhost:5000/api/admin/orders', { credentials: 'include' });
+      const res = await fetch('http://http://65.2.183.102:5000/api/admin/orders', { credentials: 'include' });
       if (res.ok) {
         const data = (await res.json()) as OrderData[];
         setOrders(data);
@@ -121,7 +121,7 @@ export function AdminDashboard({ onLogout }: AdminDashboardProps) {
 
   const updateOrderStatus = async (orderId: string, newStatus: string) => {
     try {
-      const res = await fetch(`http://localhost:5000/api/admin/orders/${orderId}/status`, {
+      const res = await fetch(`http://http://65.2.183.102:5000/api/admin/orders/${orderId}/status`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         credentials: 'include',
@@ -138,7 +138,7 @@ export function AdminDashboard({ onLogout }: AdminDashboardProps) {
 
   const fetchItems = async () => {
     try {
-      const res = await fetch('http://localhost:5000/api/admin/menu', { credentials: 'include' });
+      const res = await fetch('http://http://65.2.183.102:5000/api/admin/menu', { credentials: 'include' });
       if (res.ok) {
         const data = (await res.json()) as MenuItemData[];
         setItems(data);
@@ -224,8 +224,8 @@ export function AdminDashboard({ onLogout }: AdminDashboardProps) {
       }
 
       const url = editingItem
-        ? `http://localhost:5000/api/admin/menu/${editingItem._id}`
-        : 'http://localhost:5000/api/admin/menu';
+        ? `http://http://65.2.183.102:5000/api/admin/menu/${editingItem._id}`
+        : 'http://http://65.2.183.102:5000/api/admin/menu';
 
       const res = await fetch(url, {
         method: editingItem ? 'PUT' : 'POST',
@@ -249,7 +249,7 @@ export function AdminDashboard({ onLogout }: AdminDashboardProps) {
 
   const handleDelete = async (id: string) => {
     try {
-      await fetch(`http://localhost:5000/api/admin/menu/${id}`, {
+      await fetch(`http://http://65.2.183.102:5000/api/admin/menu/${id}`, {
         method: 'DELETE',
         credentials: 'include',
       });
@@ -260,7 +260,7 @@ export function AdminDashboard({ onLogout }: AdminDashboardProps) {
   };
 
   const handleLogout = async () => {
-    await fetch('http://localhost:5000/api/admin/logout', {
+    await fetch('http://http://65.2.183.102:5000/api/admin/logout', {
       method: 'POST',
       credentials: 'include',
     });

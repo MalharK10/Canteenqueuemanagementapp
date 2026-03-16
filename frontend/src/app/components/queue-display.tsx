@@ -35,8 +35,8 @@ export function QueueDisplay({ refreshInterval = 5000 }: QueueDisplayProps) {
   const fetchQueueData = async () => {
     try {
       const [allRes, posRes] = await Promise.all([
-        fetch('http://localhost:5000/api/orders/queue/all', { credentials: 'include' }),
-        fetch('http://localhost:5000/api/orders/queue/position', { credentials: 'include' })
+        fetch('http://http://65.2.183.102:5000/api/orders/queue/all', { credentials: 'include' }),
+        fetch('http://http://65.2.183.102:5000/api/orders/queue/position', { credentials: 'include' })
       ]);
 
       if (allRes.ok) {
