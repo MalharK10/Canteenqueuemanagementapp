@@ -4,7 +4,7 @@ import { User } from '../models/User.js';
 import { MenuItem } from '../models/MenuItem.js';
 import { Order } from '../models/Order.js';
 import { AuthRequest, authenticateAdmin, generateToken } from '../middleware/auth.js';
-import { uploadToS3, deleteFromS3 } from '../config/s3';
+import { uploadToS3, deleteFromS3 } from '../config/s3.js';
 
 const router = Router();
 
