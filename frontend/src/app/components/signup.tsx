@@ -34,7 +34,7 @@ export function Signup({ onSignup, onSwitchToLogin }: SignupProps) {
     setIsLoading(true);
 
     try {
-      const res = await fetch('http://98.93.220.96:5000/api/auth/register', {
+      const res = await fetch('http://18.208.181.187:5000/api/auth/register', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         credentials: 'include',
