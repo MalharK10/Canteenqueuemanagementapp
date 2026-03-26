@@ -53,7 +53,7 @@ export function ProfileSetup({ user, onComplete }: ProfileSetupProps) {
       const formData = new FormData();
       formData.append('profilePicture', file);
 
-      const res = await fetch('http://65.2.183.102:5000/api/profile/picture', {
+      const res = await fetch('http://98.93.220.96:5000/api/profile/picture', {
         method: 'POST',
         credentials: 'include',
         body: formData,
@@ -83,7 +83,7 @@ export function ProfileSetup({ user, onComplete }: ProfileSetupProps) {
     setIsSaving(true);
 
     try {
-      const res = await fetch('http://65.2.183.102:5000/api/profile', {
+      const res = await fetch('http://98.93.220.96:5000/api/profile', {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         credentials: 'include',

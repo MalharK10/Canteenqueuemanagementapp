@@ -15,7 +15,7 @@ const PORT = parseInt(process.env.PORT || "5000", 10);
 // Middleware
 app.use(
   cors({
-    origin: "http://65.2.183.102", // Vite dev server
+    origin: "http://98.93.220.96:5173", // Vite dev server
     credentials: true,
   }),
 );
@@ -37,8 +37,8 @@ app.get("/api/health", (_req, res) => {
 // Start
 async function start() {
   await connectDB();
-  app.listen(5000, "0.0.0.0", () => {
-    console.log("Server running on port 5000");
+  app.listen(3000, "0.0.0.0", () => {
+    console.log("Server running on port 3000");
   });
 }
 

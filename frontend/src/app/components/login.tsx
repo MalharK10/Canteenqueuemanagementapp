@@ -23,7 +23,7 @@ export function Login({ onLogin, onSwitchToSignup, onSwitchToAdmin }: LoginProps
     setError('');
 
     try {
-      const res = await fetch('http://65.2.183.102:5000/api/auth/login', {
+      const res = await fetch('http://98.93.220.96:5000/api/auth/login', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         credentials: 'include',
