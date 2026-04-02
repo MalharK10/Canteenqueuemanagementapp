@@ -1,4 +1,4 @@
-#Canteen Queue Management
+# Canteen Queue Management
 
 In college canteens, students often experience long queues, unpredictable waiting times, payment confusion, and overcrowding during peak hours.
 Canteen administrators face operational challenges such as manual order tracking, confusion between paid and unpaid orders, and kitchen miscommunication.
