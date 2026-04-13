@@ -23,7 +23,7 @@ export function Login({ onLogin, onSwitchToSignup, onSwitchToAdmin }: LoginProps
     setError('');
 
     try {
-      const res = await fetch('http://18.208.181.187:5000/api/auth/login', {
+      const res = await fetch('http://localhost:3000/api/auth/login', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         credentials: 'include',

@@ -22,7 +22,7 @@ export function AdminLogin({ onLogin, onBackToUser }: AdminLoginProps) {
     setIsLoading(true);
 
     try {
-      const res = await fetch('http://18.208.181.187:5000/api/admin/login', {
+      const res = await fetch('http://localhost:3000/api/admin/login', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         credentials: 'include',

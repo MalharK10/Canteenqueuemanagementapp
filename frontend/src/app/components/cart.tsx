@@ -43,7 +43,7 @@ export function Cart({ items, onRemoveItem, onPlaceOrder, onOrderConfirmed, onCl
 
     setIsPlacingOrder(true);
     try {
-      const response = await fetch('http://18.208.181.187:5000/api/orders', {
+      const response = await fetch('http://localhost:3000/api/orders', {
         method: 'POST',
         credentials: 'include',
         headers: { 'Content-Type': 'application/json' },
@@ -121,7 +121,7 @@ export function Cart({ items, onRemoveItem, onPlaceOrder, onOrderConfirmed, onCl
               <div className="space-y-3 border-y py-4 bg-muted/50 rounded-lg p-4">
                 <div className="flex justify-between">
                   <span className="text-muted-foreground">Order Total</span>
-                  <span className="font-semibold">${orderConfirmation.totalPrice.toFixed(2)}</span>
+                  <span className="font-semibold">₹{Math.floor(orderConfirmation.totalPrice)}</span>
                 </div>
                 <div className="flex justify-between">
                   <span className="text-muted-foreground">Estimated Ready Time</span>
@@ -184,7 +184,7 @@ export function Cart({ items, onRemoveItem, onPlaceOrder, onOrderConfirmed, onCl
                                 <div>
                                   <h4 className="mb-1">{item.name}</h4>
                                   <p className="text-sm text-muted-foreground">
-                                    ${item.price.toFixed(2)} × {item.quantity}
+                                    ₹{Math.floor(item.price)} × {item.quantity}
                                   </p>
                                 </div>
                                 <Button
@@ -197,7 +197,7 @@ export function Cart({ items, onRemoveItem, onPlaceOrder, onOrderConfirmed, onCl
                                 </Button>
                               </div>
                               <p className="text-sm mt-2 text-primary">
-                                ${(item.price * item.quantity).toFixed(2)}
+                                ₹{Math.floor(item.price * item.quantity)}
                               </p>
                             </div>
                           </div>
@@ -210,7 +210,7 @@ export function Cart({ items, onRemoveItem, onPlaceOrder, onOrderConfirmed, onCl
                   <div className="space-y-2">
                     <div className="flex justify-between">
                       <span className="text-muted-foreground">Subtotal</span>
-                      <span>${totalPrice.toFixed(2)}</span>
+                      <span>₹{Math.floor(totalPrice)}</span>
                     </div>
                     <div className="flex justify-between">
                       <span className="text-muted-foreground">Estimated time</span>
@@ -218,7 +218,7 @@ export function Cart({ items, onRemoveItem, onPlaceOrder, onOrderConfirmed, onCl
                     </div>
                     <div className="flex justify-between pt-2 border-t">
                       <span>Total</span>
-                      <span className="text-xl text-primary">${totalPrice.toFixed(2)}</span>
+                      <span className="text-xl text-primary">₹{Math.floor(totalPrice)}</span>
                     </div>
                   </div>
 
