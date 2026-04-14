@@ -10,7 +10,7 @@ const hasDatabaseUrl = Boolean(process.env.DATABASE_URL);
 export const pool = new Pool(hasDatabaseUrl
     ? {
         connectionString: process.env.DATABASE_URL,
-        ssl: parseSslEnabled(process.env.DB_SSL) ? { rejectUnauthorized: false } : false,
+        ssl: { rejectUnauthorized: false },
     }
     : {
         host: process.env.DB_HOST || 'localhost',
@@ -18,7 +18,7 @@ export const pool = new Pool(hasDatabaseUrl
         database: process.env.DB_NAME || 'canteen',
         user: process.env.DB_USER || 'postgres',
         password: process.env.DB_PASSWORD || 'postgres',
-        ssl: parseSslEnabled(process.env.DB_SSL) ? { rejectUnauthorized: false } : false,
+        ssl: { rejectUnauthorized: false },
     });
 export async function query(text, params) {
     return pool.query(text, params);

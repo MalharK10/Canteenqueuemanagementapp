@@ -12,7 +12,7 @@ export const pool = new Pool(
   hasDatabaseUrl
     ? {
         connectionString: process.env.DATABASE_URL,
-        ssl: parseSslEnabled(process.env.DB_SSL) ? { rejectUnauthorized: false } : false,
+        ssl: { rejectUnauthorized: false },
       }
     : {
         host: process.env.DB_HOST || 'localhost',
@@ -20,7 +20,7 @@ export const pool = new Pool(
         database: process.env.DB_NAME || 'canteen',
         user: process.env.DB_USER || 'postgres',
         password: process.env.DB_PASSWORD || 'postgres',
-        ssl: parseSslEnabled(process.env.DB_SSL) ? { rejectUnauthorized: false } : false,
+        ssl: { rejectUnauthorized: false },
       },
 );
 
