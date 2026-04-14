@@ -4,6 +4,7 @@ import { Input } from '@/app/components/ui/input';
 import { Label } from '@/app/components/ui/label';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/app/components/ui/card';
 import { Coffee, Lock, User, Loader2 } from 'lucide-react';
+import { apiUrl } from '@/app/lib/api';
 
 interface LoginProps {
   onLogin: () => void;
@@ -23,7 +24,7 @@ export function Login({ onLogin, onSwitchToSignup, onSwitchToAdmin }: LoginProps
     setError('');
 
     try {
-      const res = await fetch('http://localhost:3000/api/auth/login', {
+      const res = await fetch(apiUrl('/api/auth/login'), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         credentials: 'include',

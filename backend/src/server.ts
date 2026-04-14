@@ -15,7 +15,7 @@ const PORT = parseInt(process.env.PORT || "5000", 10);
 // Middleware
 app.use(
   cors({
-    origin: "http://localhost:5173", // Vite dev server
+    origin: process.env.CLIENT_URL, // Vite dev server
     credentials: true,
   }),
 );

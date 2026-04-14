@@ -12,6 +12,7 @@ import { QueueDisplay } from '@/app/components/queue-display';
 import { Header } from '@/app/components/header';
 import { toast } from 'sonner';
 import { Toaster } from '@/app/components/ui/sonner';
+import { apiUrl } from '@/app/lib/api';
 
 interface UserProfile {
   id: string;
@@ -36,7 +37,7 @@ export default function App() {
   const [isAdmin, setIsAdmin] = useState(false);
 
   useEffect(() => {
-    fetch('http://localhost:3000/api/auth/me', { credentials: 'include' })
+    fetch(apiUrl('/api/auth/me'), { credentials: 'include' })
       .then(res => {
         if (res.ok) return res.json();
         throw new Error('Not authenticated');
@@ -64,7 +65,7 @@ export default function App() {
   // Fetch menu items from backend
   const fetchMenu = useCallback(async () => {
     try {
-      const res = await fetch('http://localhost:3000/api/menu', { credentials: 'include' });
+      const res = await fetch(apiUrl('/api/menu'), { credentials: 'include' });
       if (res.ok) {
         const data = (await res.json()) as Array<{ _id: string; name: string; category: 'main' | 'beverage' | 'snack'; price: number; image: string; prepTime: number; description: string }>;
         setBackendMenuItems(data.map(item => ({ ...item, id: item._id })));
@@ -79,7 +80,7 @@ export default function App() {
   // Fetch queue info from backend
   const fetchQueueInfo = useCallback(async () => {
     try {
-      const res = await fetch('http://localhost:3000/api/orders/queue/info', { credentials: 'include' });
+      const res = await fetch(apiUrl('/api/orders/queue/info'), { credentials: 'include' });
       if (res.ok) {
         const data = (await res.json()) as { currentQueue: number; averageWaitTime: number };
         setQueueInfo(data);
@@ -92,7 +93,7 @@ export default function App() {
   // Fetch active order for user (restore on login/reload)
   const fetchActiveOrder = useCallback(async () => {
     try {
-      const res = await fetch('http://localhost:3000/api/orders', { credentials: 'include' });
+      const res = await fetch(apiUrl('/api/orders'), { credentials: 'include' });
       if (res.ok) {
         const orders = (await res.json()) as Array<{ _id: string; queueNumber: number; items: string[]; status: Order['status']; totalPrice: number; estimatedTime: number; createdAt: string }>;
         const active = orders.find(o => o.status !== 'completed');
@@ -127,7 +128,7 @@ export default function App() {
 
     const interval = setInterval(async () => {
       try {
-        const res = await fetch(`http://localhost:3000/api/orders/${currentOrder.id}`, { credentials: 'include' });
+        const res = await fetch(apiUrl(`/api/orders/${currentOrder.id}`), { credentials: 'include' });
         if (res.ok) {
           const data = (await res.json()) as { _id: string; queueNumber: number; items: string[]; status: Order['status']; totalPrice: number; estimatedTime: number; createdAt: string };
           const prevStatus = currentOrder.status;
@@ -196,7 +197,7 @@ export default function App() {
     const itemNames = cartItems.map(item => `${item.quantity}x ${item.name}`);
 
     try {
-      const res = await fetch('http://localhost:3000/api/orders', {
+      const res = await fetch(apiUrl('/api/orders'), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         credentials: 'include',
@@ -240,7 +241,7 @@ export default function App() {
 
   if (isAdmin) {
     return <AdminDashboard onLogout={async () => {
-      await fetch('http://localhost:3000/api/admin/logout', { method: 'POST', credentials: 'include' });
+      await fetch(apiUrl('/api/admin/logout'), { method: 'POST', credentials: 'include' });
       setIsAdmin(false);
       setIsAuthenticated(false);
       setAuthView('login');
@@ -260,7 +261,7 @@ export default function App() {
       return (
         <Signup
           onSignup={() => {
-            fetch('http://localhost:3000/api/auth/me', { credentials: 'include' })
+            fetch(apiUrl('/api/auth/me'), { credentials: 'include' })
               .then(res => res.ok ? res.json() : null)
               .then((data: UserProfile | null) => {
                 if (data) {
@@ -282,7 +283,7 @@ export default function App() {
       <Login
         onLogin={() => {
           // Fetch profile to check if it's complete or if user is admin
-          fetch('http://localhost:3000/api/auth/me', { credentials: 'include' })
+          fetch(apiUrl('/api/auth/me'), { credentials: 'include' })
             .then(res => res.ok ? res.json() : null)
             .then((data: UserProfile | null) => {
               if (data) {
@@ -331,7 +332,7 @@ export default function App() {
         } : undefined}
         onProfileClick={() => setShowProfileSetup(true)}
         onLogout={async () => {
-          await fetch('http://localhost:3000/api/auth/logout', { method: 'POST', credentials: 'include' });
+          await fetch(apiUrl('/api/auth/logout'), { method: 'POST', credentials: 'include' });
           setIsAuthenticated(false);
           setUserProfile(null);
           setAuthView('login');

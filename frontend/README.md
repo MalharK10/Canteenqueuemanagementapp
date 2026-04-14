@@ -7,5 +7,7 @@
 
   Run `npm i` to install the dependencies.
 
+  Set `VITE_API_BASE_URL` in `.env` to the backend origin, for example `http://localhost:3000`.
+
   Run `npm run dev` to start the development server.
   

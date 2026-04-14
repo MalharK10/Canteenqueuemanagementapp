@@ -4,6 +4,7 @@ import { Badge } from '@/app/components/ui/badge';
 import { Progress } from '@/app/components/ui/progress';
 import { Users, Clock, AlertCircle, TrendingUp } from 'lucide-react';
 import { ScrollArea } from '@/app/components/ui/scroll-area';
+import { apiUrl } from '@/app/lib/api';
 
 interface QueueOrder {
   _id: string;
@@ -35,8 +36,8 @@ export function QueueDisplay({ refreshInterval = 5000 }: QueueDisplayProps) {
   const fetchQueueData = async () => {
     try {
       const [allRes, posRes] = await Promise.all([
-        fetch('http://localhost:3000/api/orders/queue/all', { credentials: 'include' }),
-        fetch('http://localhost:3000/api/orders/queue/position', { credentials: 'include' })
+        fetch(apiUrl('/api/orders/queue/all'), { credentials: 'include' }),
+        fetch(apiUrl('/api/orders/queue/position'), { credentials: 'include' })
       ]);
 
       if (allRes.ok) {

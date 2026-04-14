@@ -4,6 +4,7 @@ import { Input } from '@/app/components/ui/input';
 import { Label } from '@/app/components/ui/label';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/app/components/ui/card';
 import { Coffee, Lock, User, Loader2 } from 'lucide-react';
+import { apiUrl } from '@/app/lib/api';
 
 interface SignupProps {
   onSignup: () => void;
@@ -34,7 +35,7 @@ export function Signup({ onSignup, onSwitchToLogin }: SignupProps) {
     setIsLoading(true);
 
     try {
-      const res = await fetch('http://localhost:3000/api/auth/register', {
+      const res = await fetch(apiUrl('/api/auth/register'), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         credentials: 'include',

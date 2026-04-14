@@ -6,6 +6,7 @@ import { Textarea } from '@/app/components/ui/textarea';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/app/components/ui/card';
 import { Avatar, AvatarFallback, AvatarImage } from '@/app/components/ui/avatar';
 import { Camera, Loader2, User } from 'lucide-react';
+import { apiUrl } from '@/app/lib/api';
 
 interface UserProfile {
   id: string;
@@ -53,7 +54,7 @@ export function ProfileSetup({ user, onComplete }: ProfileSetupProps) {
       const formData = new FormData();
       formData.append('profilePicture', file);
 
-      const res = await fetch('http://localhost:3000/api/profile/picture', {
+      const res = await fetch(apiUrl('/api/profile/picture'), {
         method: 'POST',
         credentials: 'include',
         body: formData,
@@ -83,7 +84,7 @@ export function ProfileSetup({ user, onComplete }: ProfileSetupProps) {
     setIsSaving(true);
 
     try {
-      const res = await fetch('http://localhost:3000/api/profile', {
+      const res = await fetch(apiUrl('/api/profile'), {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         credentials: 'include',

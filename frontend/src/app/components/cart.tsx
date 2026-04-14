@@ -7,6 +7,7 @@ import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/ap
 import { ScrollArea } from '@/app/components/ui/scroll-area';
 import { useState } from 'react';
 import { toast } from 'sonner';
+import { apiUrl } from '@/app/lib/api';
 
 interface CartItem extends MenuItem {
   quantity: number;
@@ -43,7 +44,7 @@ export function Cart({ items, onRemoveItem, onPlaceOrder, onOrderConfirmed, onCl
 
     setIsPlacingOrder(true);
     try {
-      const response = await fetch('http://localhost:3000/api/orders', {
+      const response = await fetch(apiUrl('/api/orders'), {
         method: 'POST',
         credentials: 'include',
         headers: { 'Content-Type': 'application/json' },
