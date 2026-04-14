@@ -1,16 +1,39 @@
-import mongoose, { Document } from 'mongoose';
-export interface IOrder extends Document {
-    userId: mongoose.Types.ObjectId;
+export type OrderStatus = 'pending' | 'preparing' | 'ready' | 'completed';
+export interface IOrder {
+    _id: string;
+    id: string;
+    userId: string;
     queueNumber: number;
     items: string[];
-    status: 'pending' | 'preparing' | 'ready' | 'completed';
+    status: OrderStatus;
     totalPrice: number;
     estimatedTime: number;
     createdAt: Date;
 }
-export declare const Order: mongoose.Model<IOrder, {}, {}, {}, mongoose.Document<unknown, {}, IOrder, {}, {}> & IOrder & Required<{
-    _id: mongoose.Types.ObjectId;
-}> & {
-    __v: number;
-}, any>;
+export interface IOrderWithUser extends Omit<IOrder, 'userId'> {
+    userId: {
+        _id: string;
+        username: string;
+        displayName: string;
+    };
+}
+export declare function createOrder(input: {
+    userId: string;
+    queueNumber: number;
+    items: string[];
+    totalPrice: number;
+    estimatedTime: number;
+    status?: OrderStatus;
+}): Promise<IOrder>;
+export declare function findOrdersByUser(userId: string): Promise<IOrder[]>;
+export declare function findOrderByIdForUser(orderId: string, userId: string): Promise<IOrder | null>;
+export declare function countActiveOrders(): Promise<number>;
+export declare function averageActiveOrderTime(): Promise<number>;
+export declare function findAllQueueOrders(): Promise<Array<Pick<IOrder, '_id' | 'queueNumber' | 'status' | 'estimatedTime' | 'createdAt' | 'totalPrice'>>>;
+export declare function findUserActiveOrder(userId: string): Promise<IOrder | null>;
+export declare function countOrdersAhead(queueNumber: number): Promise<number>;
+export declare function countOrdersInQueue(): Promise<number>;
+export declare function updateOrderStatus(orderId: string, status: OrderStatus): Promise<IOrder | null>;
+export declare function findAllOrdersWithUser(): Promise<IOrderWithUser[]>;
+export declare function updateOrderStatusWithUser(orderId: string, status: OrderStatus): Promise<IOrderWithUser | null>;
 //# sourceMappingURL=Order.d.ts.map

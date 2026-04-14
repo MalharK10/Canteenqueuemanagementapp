@@ -1,6 +1,6 @@
 import { Request, Response, NextFunction } from 'express';
 import jwt from 'jsonwebtoken';
-import { User } from '../models/User.js';
+import { findUserById } from '../models/User.js';
 
 export interface AuthRequest extends Request {
   userId?: string;
@@ -39,7 +39,7 @@ export async function authenticateAdmin(req: AuthRequest, res: Response, next: N
 
   try {
     const decoded = jwt.verify(token, JWT_SECRET) as { id: string };
-    const user = await User.findById(decoded.id).select('role');
+    const user = await findUserById(decoded.id);
     if (!user || user.role !== 'admin') {
       res.status(403).json({ error: 'Admin access required' });
       return;

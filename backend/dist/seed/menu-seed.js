@@ -1,5 +1,5 @@
-import { connectDB } from '../config/db';
-import { MenuItem } from '../models/MenuItem';
+import { connectDB } from '../config/db.js';
+import { countMenuItems, insertManyMenuItems } from '../models/MenuItem.js';
 import dotenv from 'dotenv';
 dotenv.config();
 const menuItems = [
@@ -70,12 +70,12 @@ const menuItems = [
 ];
 async function seed() {
     await connectDB();
-    const count = await MenuItem.countDocuments();
+    const count = await countMenuItems();
     if (count > 0) {
         console.log(`Menu already seeded (${count} items). Skipping.`);
         process.exit(0);
     }
-    await MenuItem.insertMany(menuItems);
+    await insertManyMenuItems(menuItems);
     console.log(`Seeded ${menuItems.length} menu items.`);
     process.exit(0);
 }

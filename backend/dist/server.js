@@ -13,7 +13,7 @@ const app = express();
 const PORT = parseInt(process.env.PORT || "5000", 10);
 // Middleware
 app.use(cors({
-    origin: "http://localhost", // Vite dev server
+    origin: "http://localhost:5173", // Vite dev server
     credentials: true,
 }));
 app.use(express.json());
@@ -31,8 +31,8 @@ app.get("/api/health", (_req, res) => {
 // Start
 async function start() {
     await connectDB();
-    app.listen(5000, "0.0.0.0", () => {
-        console.log("Server running on port 5000");
+    app.listen(3000, "0.0.0.0", () => {
+        console.log("Server running on port 3000");
     });
 }
 start().catch((err) => {

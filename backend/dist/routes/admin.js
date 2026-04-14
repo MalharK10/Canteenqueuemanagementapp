@@ -1,8 +1,8 @@
 import { Router } from 'express';
 import multer from 'multer';
-import { User } from '../models/User.js';
-import { MenuItem } from '../models/MenuItem.js';
-import { Order } from '../models/Order.js';
+import { findUserById, findUserByUsername, verifyPassword } from '../models/User.js';
+import { createMenuItem, deleteMenuItem, findMenuItemById, findMenuItems, updateMenuItem, } from '../models/MenuItem.js';
+import { findAllOrdersWithUser, updateOrderStatusWithUser } from '../models/Order.js';
 import { authenticateAdmin, generateToken } from '../middleware/auth.js';
 import { uploadToS3, deleteFromS3 } from '../config/s3.js';
 const router = Router();
@@ -26,8 +26,8 @@ router.post('/login', async (req, res) => {
             res.status(400).json({ error: 'Username and password are required' });
             return;
         }
-        const user = await User.findOne({ username, role: 'admin' });
-        if (!user || !(await user.comparePassword(password))) {
+        const user = await findUserByUsername(username, 'admin');
+        if (!user || !(await verifyPassword(user, password))) {
             res.status(401).json({ error: 'Invalid admin credentials' });
             return;
         }
@@ -48,7 +48,7 @@ router.post('/login', async (req, res) => {
 // GET /api/admin/me — verify admin session
 router.get('/me', authenticateAdmin, async (req, res) => {
     try {
-        const user = await User.findById(req.userId).select('-password');
+        const user = req.userId ? await findUserById(req.userId) : null;
         if (!user) {
             res.status(404).json({ error: 'User not found' });
             return;
@@ -68,7 +68,7 @@ router.post('/logout', (_req, res) => {
 // GET /api/admin/menu — list all menu items
 router.get('/menu', authenticateAdmin, async (_req, res) => {
     try {
-        const items = await MenuItem.find().sort({ category: 1, name: 1 });
+        const items = await findMenuItems();
         res.json(items);
     }
     catch (err) {
@@ -93,9 +93,9 @@ router.post('/menu', authenticateAdmin, upload.single('image'), async (req, res)
             return;
         }
         const imageUrl = await uploadToS3(req.file.buffer, req.file.mimetype, 'menu-images');
-        const item = await MenuItem.create({
+        const item = await createMenuItem({
             name: name.trim(),
-            category,
+            category: category,
             price: parseFloat(price),
             prepTime: parseInt(prepTime, 10),
             description: description.trim(),
@@ -111,32 +111,38 @@ router.post('/menu', authenticateAdmin, upload.single('image'), async (req, res)
 // PUT /api/admin/menu/:id — update a menu item (optionally replace image)
 router.put('/menu/:id', authenticateAdmin, upload.single('image'), async (req, res) => {
     try {
-        const item = await MenuItem.findById(req.params.id);
+        const itemId = String(req.params.id);
+        const item = await findMenuItemById(itemId);
         if (!item) {
             res.status(404).json({ error: 'Menu item not found' });
             return;
         }
         const { name, category, price, prepTime, description } = req.body;
+        const update = {};
         if (name)
-            item.name = name.trim();
+            update.name = name.trim();
         if (category && ['main', 'beverage', 'snack'].includes(category)) {
-            item.category = category;
+            update.category = category;
         }
         if (price)
-            item.price = parseFloat(price);
+            update.price = parseFloat(price);
         if (prepTime)
-            item.prepTime = parseInt(prepTime, 10);
+            update.prepTime = parseInt(prepTime, 10);
         if (description)
-            item.description = description.trim();
+            update.description = description.trim();
         if (req.file) {
             // Delete old image from S3
             if (item.image) {
                 await deleteFromS3(item.image);
             }
-            item.image = await uploadToS3(req.file.buffer, req.file.mimetype, 'menu-images');
+            update.image = await uploadToS3(req.file.buffer, req.file.mimetype, 'menu-images');
         }
-        await item.save();
-        res.json(item);
+        const updated = await updateMenuItem(itemId, update);
+        if (!updated) {
+            res.status(404).json({ error: 'Menu item not found' });
+            return;
+        }
+        res.json(updated);
     }
     catch (err) {
         console.error('Admin menu update error:', err);
@@ -146,7 +152,8 @@ router.put('/menu/:id', authenticateAdmin, upload.single('image'), async (req, r
 // DELETE /api/admin/menu/:id — delete a menu item
 router.delete('/menu/:id', authenticateAdmin, async (req, res) => {
     try {
-        const item = await MenuItem.findById(req.params.id);
+        const itemId = String(req.params.id);
+        const item = await findMenuItemById(itemId);
         if (!item) {
             res.status(404).json({ error: 'Menu item not found' });
             return;
@@ -155,7 +162,7 @@ router.delete('/menu/:id', authenticateAdmin, async (req, res) => {
         if (item.image) {
             await deleteFromS3(item.image);
         }
-        await item.deleteOne();
+        await deleteMenuItem(itemId);
         res.json({ message: 'Menu item deleted' });
     }
     catch (err) {
@@ -166,9 +173,7 @@ router.delete('/menu/:id', authenticateAdmin, async (req, res) => {
 // GET /api/admin/orders — list all orders (active first, then recent)
 router.get('/orders', authenticateAdmin, async (_req, res) => {
     try {
-        const orders = await Order.find()
-            .sort({ createdAt: -1 })
-            .populate('userId', 'username displayName');
+        const orders = await findAllOrdersWithUser();
         res.json(orders);
     }
     catch (err) {
@@ -185,7 +190,8 @@ router.patch('/orders/:id/status', authenticateAdmin, async (req, res) => {
             res.status(400).json({ error: 'Invalid status' });
             return;
         }
-        const order = await Order.findByIdAndUpdate(req.params.id, { status }, { new: true }).populate('userId', 'username displayName');
+        const orderId = String(req.params.id);
+        const order = await updateOrderStatusWithUser(orderId, status);
         if (!order) {
             res.status(404).json({ error: 'Order not found' });
             return;

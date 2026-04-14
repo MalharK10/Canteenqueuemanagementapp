@@ -1,5 +1,5 @@
 import { Router, Response } from 'express';
-import { User } from '../models/User.js';
+import { createUser, findUserById, findUserByUsername, verifyPassword } from '../models/User.js';
 import { AuthRequest, authenticate, generateToken } from '../middleware/auth.js';
 
 const router = Router();
@@ -19,14 +19,14 @@ router.post('/register', async (req: AuthRequest, res: Response) => {
       return;
     }
 
-    const existing = await User.findOne({ username });
+    const existing = await findUserByUsername(username);
     if (existing) {
       res.status(409).json({ error: 'Username already taken' });
       return;
     }
 
-    const user = await User.create({ username, password });
-    const token = generateToken(user.id as string);
+    const user = await createUser({ username, password });
+    const token = generateToken(user.id);
 
     res.cookie('token', token, {
       httpOnly: true,
@@ -52,13 +52,13 @@ router.post('/login', async (req: AuthRequest, res: Response) => {
       return;
     }
 
-    const user = await User.findOne({ username });
-    if (!user || !(await user.comparePassword(password))) {
+    const user = await findUserByUsername(username);
+    if (!user || !(await verifyPassword(user, password))) {
       res.status(401).json({ error: 'Invalid username or password' });
       return;
     }
 
-    const token = generateToken(user.id as string);
+    const token = generateToken(user.id);
 
     res.cookie('token', token, {
       httpOnly: true,
@@ -77,7 +77,7 @@ router.post('/login', async (req: AuthRequest, res: Response) => {
 // GET /api/auth/me
 router.get('/me', authenticate, async (req: AuthRequest, res: Response) => {
   try {
-    const user = await User.findById(req.userId).select('-password');
+    const user = req.userId ? await findUserById(req.userId) : null;
     if (!user) {
       res.status(404).json({ error: 'User not found' });
       return;

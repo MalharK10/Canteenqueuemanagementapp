@@ -1,5 +1,5 @@
 import { Router } from 'express';
-import { User } from '../models/User.js';
+import { createUser, findUserById, findUserByUsername, verifyPassword } from '../models/User.js';
 import { authenticate, generateToken } from '../middleware/auth.js';
 const router = Router();
 // POST /api/auth/register
@@ -14,12 +14,12 @@ router.post('/register', async (req, res) => {
             res.status(400).json({ error: 'Password must be at least 6 characters' });
             return;
         }
-        const existing = await User.findOne({ username });
+        const existing = await findUserByUsername(username);
         if (existing) {
             res.status(409).json({ error: 'Username already taken' });
             return;
         }
-        const user = await User.create({ username, password });
+        const user = await createUser({ username, password });
         const token = generateToken(user.id);
         res.cookie('token', token, {
             httpOnly: true,
@@ -42,8 +42,8 @@ router.post('/login', async (req, res) => {
             res.status(400).json({ error: 'Username and password are required' });
             return;
         }
-        const user = await User.findOne({ username });
-        if (!user || !(await user.comparePassword(password))) {
+        const user = await findUserByUsername(username);
+        if (!user || !(await verifyPassword(user, password))) {
             res.status(401).json({ error: 'Invalid username or password' });
             return;
         }
@@ -64,7 +64,7 @@ router.post('/login', async (req, res) => {
 // GET /api/auth/me
 router.get('/me', authenticate, async (req, res) => {
     try {
-        const user = await User.findById(req.userId).select('-password');
+        const user = req.userId ? await findUserById(req.userId) : null;
         if (!user) {
             res.status(404).json({ error: 'User not found' });
             return;

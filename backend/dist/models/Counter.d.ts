@@ -1,12 +1,6 @@
-import mongoose, { Document } from 'mongoose';
-export interface ICounter extends Document {
+export interface ICounter {
     name: string;
     seq: number;
 }
-export declare const Counter: mongoose.Model<ICounter, {}, {}, {}, mongoose.Document<unknown, {}, ICounter, {}, {}> & ICounter & Required<{
-    _id: mongoose.Types.ObjectId;
-}> & {
-    __v: number;
-}, any>;
 export declare function getNextQueueNumber(): Promise<number>;
 //# sourceMappingURL=Counter.d.ts.map

@@ -1,15 +1,19 @@
-import mongoose, { Document } from 'mongoose';
-export interface IMenuItem extends Document {
+export type MenuCategory = 'main' | 'beverage' | 'snack';
+export interface IMenuItem {
+    _id: string;
+    id: string;
     name: string;
-    category: 'main' | 'beverage' | 'snack';
+    category: MenuCategory;
     price: number;
     image: string;
     prepTime: number;
     description: string;
 }
-export declare const MenuItem: mongoose.Model<IMenuItem, {}, {}, {}, mongoose.Document<unknown, {}, IMenuItem, {}, {}> & IMenuItem & Required<{
-    _id: mongoose.Types.ObjectId;
-}> & {
-    __v: number;
-}, any>;
+export declare function findMenuItems(category?: MenuCategory): Promise<IMenuItem[]>;
+export declare function findMenuItemById(id: string): Promise<IMenuItem | null>;
+export declare function createMenuItem(input: Omit<IMenuItem, '_id' | 'id'>): Promise<IMenuItem>;
+export declare function updateMenuItem(id: string, input: Partial<Omit<IMenuItem, '_id' | 'id'>>): Promise<IMenuItem | null>;
+export declare function deleteMenuItem(id: string): Promise<boolean>;
+export declare function countMenuItems(): Promise<number>;
+export declare function insertManyMenuItems(items: Array<Omit<IMenuItem, '_id' | 'id'>>): Promise<void>;
 //# sourceMappingURL=MenuItem.d.ts.map

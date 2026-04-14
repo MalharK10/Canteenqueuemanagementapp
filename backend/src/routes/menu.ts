@@ -1,12 +1,12 @@
 import { Router, Request, Response } from 'express';
-import { MenuItem } from '../models/MenuItem.js';
+import { findMenuItems, MenuCategory } from '../models/MenuItem.js';
 
 const router = Router();
 
 // GET /api/menu
 router.get('/', async (_req: Request, res: Response) => {
   try {
-    const items = await MenuItem.find();
+    const items = await findMenuItems();
     res.json(items);
   } catch (err) {
     console.error('Menu fetch error:', err);
@@ -22,7 +22,7 @@ router.get('/:category', async (req: Request, res: Response) => {
       res.status(400).json({ error: 'Invalid category' });
       return;
     }
-    const items = await MenuItem.find({ category });
+    const items = await findMenuItems(category as MenuCategory);
     res.json(items);
   } catch (err) {
     console.error('Menu category fetch error:', err);

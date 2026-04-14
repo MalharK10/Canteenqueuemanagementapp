@@ -1,11 +1,10 @@
-import mongoose, { Schema } from 'mongoose';
-const counterSchema = new Schema({
-    name: { type: String, required: true, unique: true },
-    seq: { type: Number, default: 0 },
-});
-export const Counter = mongoose.model('Counter', counterSchema);
+import { query } from '../config/db.js';
 export async function getNextQueueNumber() {
-    const counter = await Counter.findOneAndUpdate({ name: 'queueNumber' }, { $inc: { seq: 1 } }, { new: true, upsert: true });
-    return counter.seq;
+    const result = await query(`INSERT INTO counters (name, seq)
+     VALUES ('queueNumber', 1)
+     ON CONFLICT (name)
+     DO UPDATE SET seq = counters.seq + 1
+     RETURNING seq`);
+    return result.rows[0].seq;
 }
 //# sourceMappingURL=Counter.js.map

@@ -1,18 +1,33 @@
-import mongoose, { Document } from 'mongoose';
-export interface IUser extends Document {
+export type UserRole = 'user' | 'admin';
+export interface IUser {
+    _id: string;
+    id: string;
     username: string;
-    password: string;
     displayName: string;
     bio: string;
     profilePicture: string;
     profileCompleted: boolean;
-    role: 'user' | 'admin';
+    role: UserRole;
     createdAt: Date;
-    comparePassword(candidate: string): Promise<boolean>;
 }
-export declare const User: mongoose.Model<IUser, {}, {}, {}, mongoose.Document<unknown, {}, IUser, {}, {}> & IUser & Required<{
-    _id: mongoose.Types.ObjectId;
-}> & {
-    __v: number;
-}, any>;
+export interface IUserWithPassword extends IUser {
+    passwordHash: string;
+}
+export declare function createUser(input: {
+    username: string;
+    password: string;
+    role?: UserRole;
+    displayName?: string;
+    profileCompleted?: boolean;
+}): Promise<IUser>;
+export declare function findUserByUsername(username: string, role?: UserRole): Promise<IUserWithPassword | null>;
+export declare function findUserById(id: string): Promise<IUser | null>;
+export declare function verifyPassword(user: IUserWithPassword, candidate: string): Promise<boolean>;
+export declare function updateUserProfile(id: string, update: {
+    displayName?: string;
+    bio?: string;
+    profileCompleted?: boolean;
+}): Promise<IUser | null>;
+export declare function updateUserProfilePicture(id: string, profilePicture: string): Promise<IUser | null>;
+export declare function findAnyAdmin(): Promise<IUser | null>;
 //# sourceMappingURL=User.d.ts.map

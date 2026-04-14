@@ -1,6 +1,6 @@
 import { Router, Response } from 'express';
 import multer from 'multer';
-import { User } from '../models/User.js';
+import { findUserById, updateUserProfile, updateUserProfilePicture } from '../models/User.js';
 import { AuthRequest, authenticate } from '../middleware/auth.js';
 import { uploadToS3, deleteFromS3 } from '../config/s3.js';
 
@@ -22,7 +22,7 @@ const upload = multer({
 // GET /api/profile — get current user's profile
 router.get('/', authenticate, async (req: AuthRequest, res: Response) => {
   try {
-    const user = await User.findById(req.userId).select('-password');
+    const user = req.userId ? await findUserById(req.userId) : null;
     if (!user) {
       res.status(404).json({ error: 'User not found' });
       return;
@@ -51,7 +51,11 @@ router.put('/', authenticate, async (req: AuthRequest, res: Response) => {
     if (bio !== undefined) update.bio = bio.trim();
     update.profileCompleted = true;
 
-    const user = await User.findByIdAndUpdate(req.userId, update, { new: true }).select('-password');
+    const user = await updateUserProfile(req.userId!, {
+      displayName: update.displayName as string | undefined,
+      bio: update.bio as string | undefined,
+      profileCompleted: true,
+    });
     if (!user) {
       res.status(404).json({ error: 'User not found' });
       return;
@@ -83,21 +87,19 @@ router.post(
         return;
       }
 
-      const user = await User.findById(req.userId);
-      if (!user) {
+      const existingUser = req.userId ? await findUserById(req.userId) : null;
+      if (!existingUser) {
         res.status(404).json({ error: 'User not found' });
         return;
       }
 
       // Delete old picture from S3 if it exists
-      if (user.profilePicture) {
-        await deleteFromS3(user.profilePicture);
+      if (existingUser.profilePicture) {
+        await deleteFromS3(existingUser.profilePicture);
       }
 
       const url = await uploadToS3(req.file.buffer, req.file.mimetype);
-
-      user.profilePicture = url;
-      await user.save();
+      await updateUserProfilePicture(req.userId!, url);
 
       res.json({ profilePicture: url });
     } catch (err) {

@@ -1,5 +1,5 @@
 import { Router } from 'express';
-import { Order } from '../models/Order.js';
+import { averageActiveOrderTime, countActiveOrders, countOrdersAhead, countOrdersInQueue, createOrder, findAllQueueOrders, findOrderByIdForUser, findOrdersByUser, findUserActiveOrder, updateOrderStatus, } from '../models/Order.js';
 import { getNextQueueNumber } from '../models/Counter.js';
 import { authenticate } from '../middleware/auth.js';
 const router = Router();
@@ -22,7 +22,7 @@ router.post('/', async (req, res) => {
             return;
         }
         const queueNumber = await getNextQueueNumber();
-        const order = await Order.create({
+        const order = await createOrder({
             userId: req.userId,
             queueNumber,
             items,
@@ -40,7 +40,7 @@ router.post('/', async (req, res) => {
 // GET /api/orders — list current user's orders
 router.get('/', async (req, res) => {
     try {
-        const orders = await Order.find({ userId: req.userId }).sort({ createdAt: -1 });
+        const orders = await findOrdersByUser(req.userId);
         res.json(orders);
     }
     catch (err) {
@@ -51,12 +51,8 @@ router.get('/', async (req, res) => {
 // GET /api/orders/queue/info — get queue info (count of active orders, avg wait)
 router.get('/queue/info', async (_req, res) => {
     try {
-        const activeOrders = await Order.countDocuments({ status: { $in: ['pending', 'preparing'] } });
-        const avgResult = await Order.aggregate([
-            { $match: { status: { $in: ['pending', 'preparing'] } } },
-            { $group: { _id: null, avgTime: { $avg: '$estimatedTime' } } },
-        ]);
-        const averageWaitTime = avgResult.length > 0 ? Math.round(avgResult[0].avgTime) : 0;
+        const activeOrders = await countActiveOrders();
+        const averageWaitTime = await averageActiveOrderTime();
         res.json({ currentQueue: activeOrders, averageWaitTime });
     }
     catch (err) {
@@ -67,11 +63,7 @@ router.get('/queue/info', async (_req, res) => {
 // GET /api/orders/queue/all — get all orders in queue (for display/admin)
 router.get('/queue/all', async (_req, res) => {
     try {
-        const allOrders = await Order.find({
-            status: { $in: ['pending', 'preparing', 'ready'] }
-        })
-            .sort({ queueNumber: 1 })
-            .select('queueNumber status estimatedTime createdAt items totalPrice');
+        const allOrders = await findAllQueueOrders();
         res.json(allOrders);
     }
     catch (err) {
@@ -82,21 +74,13 @@ router.get('/queue/all', async (_req, res) => {
 // GET /api/orders/queue/position — get user's position in queue
 router.get('/queue/position', async (req, res) => {
     try {
-        const userOrder = await Order.findOne({
-            userId: req.userId,
-            status: { $in: ['pending', 'preparing', 'ready'] }
-        });
+        const userOrder = await findUserActiveOrder(req.userId);
         if (!userOrder) {
             res.json({ position: null, queueNumber: null, ordersAhead: 0 });
             return;
         }
-        const ordersAhead = await Order.countDocuments({
-            queueNumber: { $lt: userOrder.queueNumber },
-            status: { $in: ['pending', 'preparing', 'ready'] }
-        });
-        const totalInQueue = await Order.countDocuments({
-            status: { $in: ['pending', 'preparing', 'ready'] }
-        });
+        const ordersAhead = await countOrdersAhead(userOrder.queueNumber);
+        const totalInQueue = await countOrdersInQueue();
         res.json({
             queueNumber: userOrder.queueNumber,
             position: ordersAhead + 1,
@@ -113,7 +97,8 @@ router.get('/queue/position', async (req, res) => {
 // GET /api/orders/:id — get a specific order
 router.get('/:id', async (req, res) => {
     try {
-        const order = await Order.findOne({ _id: req.params.id, userId: req.userId });
+        const orderId = String(req.params.id);
+        const order = await findOrderByIdForUser(orderId, req.userId);
         if (!order) {
             res.status(404).json({ error: 'Order not found' });
             return;
@@ -134,7 +119,8 @@ router.patch('/:id/status', async (req, res) => {
             res.status(400).json({ error: 'Invalid status' });
             return;
         }
-        const order = await Order.findByIdAndUpdate(req.params.id, { status }, { new: true });
+        const orderId = String(req.params.id);
+        const order = await updateOrderStatus(orderId, status);
         if (!order) {
             res.status(404).json({ error: 'Order not found' });
             return;

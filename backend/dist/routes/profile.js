@@ -1,6 +1,6 @@
 import { Router } from 'express';
 import multer from 'multer';
-import { User } from '../models/User.js';
+import { findUserById, updateUserProfile, updateUserProfilePicture } from '../models/User.js';
 import { authenticate } from '../middleware/auth.js';
 import { uploadToS3, deleteFromS3 } from '../config/s3.js';
 const router = Router();
@@ -20,7 +20,7 @@ const upload = multer({
 // GET /api/profile — get current user's profile
 router.get('/', authenticate, async (req, res) => {
     try {
-        const user = await User.findById(req.userId).select('-password');
+        const user = req.userId ? await findUserById(req.userId) : null;
         if (!user) {
             res.status(404).json({ error: 'User not found' });
             return;
@@ -49,7 +49,11 @@ router.put('/', authenticate, async (req, res) => {
         if (bio !== undefined)
             update.bio = bio.trim();
         update.profileCompleted = true;
-        const user = await User.findByIdAndUpdate(req.userId, update, { new: true }).select('-password');
+        const user = await updateUserProfile(req.userId, {
+            displayName: update.displayName,
+            bio: update.bio,
+            profileCompleted: true,
+        });
         if (!user) {
             res.status(404).json({ error: 'User not found' });
             return;
@@ -75,18 +79,17 @@ router.post('/picture', authenticate, upload.single('profilePicture'), async (re
             res.status(400).json({ error: 'No image file provided' });
             return;
         }
-        const user = await User.findById(req.userId);
-        if (!user) {
+        const existingUser = req.userId ? await findUserById(req.userId) : null;
+        if (!existingUser) {
             res.status(404).json({ error: 'User not found' });
             return;
         }
         // Delete old picture from S3 if it exists
-        if (user.profilePicture) {
-            await deleteFromS3(user.profilePicture);
+        if (existingUser.profilePicture) {
+            await deleteFromS3(existingUser.profilePicture);
         }
         const url = await uploadToS3(req.file.buffer, req.file.mimetype);
-        user.profilePicture = url;
-        await user.save();
+        await updateUserProfilePicture(req.userId, url);
         res.json({ profilePicture: url });
     }
     catch (err) {

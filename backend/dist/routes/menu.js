@@ -1,10 +1,10 @@
 import { Router } from 'express';
-import { MenuItem } from '../models/MenuItem.js';
+import { findMenuItems } from '../models/MenuItem.js';
 const router = Router();
 // GET /api/menu
 router.get('/', async (_req, res) => {
     try {
-        const items = await MenuItem.find();
+        const items = await findMenuItems();
         res.json(items);
     }
     catch (err) {
@@ -20,7 +20,7 @@ router.get('/:category', async (req, res) => {
             res.status(400).json({ error: 'Invalid category' });
             return;
         }
-        const items = await MenuItem.find({ category });
+        const items = await findMenuItems(category);
         res.json(items);
     }
     catch (err) {
